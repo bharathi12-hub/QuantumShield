@@ -50,6 +50,16 @@ def resolve_project(
 
 # ------------------------------------------------------------------ path safety
 def _validate_path(path: str) -> str:
+    """Resolve `path` and refuse anything outside QS_SCAN_ALLOWED_ROOTS.
+
+    CWE-22 defense: canonicalise first (resolves ``..`` and symlinks), then
+    do an exact allow-list prefix check on the resolved path — never on the
+    raw, attacker-supplied string, which is what lets ``../`` traversal slip
+    through a naive check. ``scan_path`` (engine.py) re-validates every entry
+    it walks against this same resolved root as defense in depth.
+    """
+    if "\x00" in path:
+        raise ScanError(f"Invalid path: {path!r}")
     real = os.path.realpath(path)
     if not os.path.exists(real):
         raise ScanError(f"Path does not exist: {path}")

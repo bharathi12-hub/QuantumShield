@@ -199,35 +199,51 @@ def scan_sources(files: Dict[str, str]) -> ScanResult:
 
 
 def scan_path(root: str) -> ScanResult:
-    """Recursively scan a directory (or single file) on disk."""
+    """Recursively scan a directory (or single file) on disk.
+
+    ``root`` is canonicalised up front, and every discovered entry is
+    re-checked to still sit inside that canonical root before it is opened.
+    This is defense in depth on top of caller-side validation (see
+    ``scan_service._validate_path``): the engine no longer trusts an
+    unqualified path string on its own, which closes off traversal via a
+    symlink encountered inside the tree, or a future caller that forgets to
+    pre-validate (CWE-22: uncontrolled data used in a path expression).
+    """
     result = ScanResult()
+    root = os.path.realpath(root)
     if os.path.isfile(root):
         targets = [root]
         base = os.path.dirname(root)
     else:
         targets = []
         base = root
-        for dirpath, dirnames, filenames in os.walk(root):
+        for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
             # prune ignored directories in place
             dirnames[:] = [d for d in dirnames if d not in lang.IGNORED_DIRS]
             for fn in filenames:
                 targets.append(os.path.join(dirpath, fn))
 
     for full in targets:
-        if not lang.is_scannable(full):
+        # Re-resolve each entry: a symlinked file inside the tree could
+        # otherwise point outside `root` even though `root` itself is safe.
+        real_full = os.path.realpath(full)
+        if real_full != root and not real_full.startswith(root + os.sep):
+            result.errors.append(f"{full}: resolves outside scan root, skipped")
+            continue
+        if not lang.is_scannable(real_full):
             continue
         try:
-            if os.path.getsize(full) > lang.MAX_FILE_BYTES:
+            if os.path.getsize(real_full) > lang.MAX_FILE_BYTES:
                 continue
-            with open(full, "r", encoding="utf-8", errors="replace") as fh:
+            with open(real_full, "r", encoding="utf-8", errors="replace") as fh:
                 content = fh.read()
         except OSError as exc:
             result.errors.append(f"{full}: {exc}")
             continue
 
-        rel = os.path.relpath(full, base) if base else full
+        rel = os.path.relpath(real_full, base) if base else real_full
         rel = rel.replace(os.sep, "/")
-        language = lang.detect_language(full) or "Unknown"
+        language = lang.detect_language(real_full) or "Unknown"
         result.files_scanned += 1
         result.lines_scanned += content.count("\n") + 1
         result.language_breakdown[language] = result.language_breakdown.get(language, 0) + 1
