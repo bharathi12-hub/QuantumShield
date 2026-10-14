@@ -278,19 +278,20 @@ real key. Never use any of it in production.
 
 ## 👥 Team
 
-QuantumShield is a team project by **Bharathithasan S**, **Ganesh M**,
-**Rohith V**, and **Renith V**.
+QuantumShield is a team project with these assigned focus areas:
 
-| Member | Documented role |
+| Member | Project focus |
 |---|---|
-| **Bharathithasan S** | Cybersecurity engineering and repository maintenance; [authored scan-path hardening](https://github.com/bharathi12-hub/QuantumShield/commit/a90b659c6fc80a3c4044570f670e98978a3e320c) for canonical paths and symlink containment |
-| **Ganesh M** | Team member; individual component ownership not documented here |
-| **Rohith V** | Team member; individual component ownership not documented here |
-| **Renith V** | Team member; individual component ownership not documented here |
+| **Bharathithasan S** | Application security and repository maintenance; [documented scan-path hardening](https://github.com/bharathi12-hub/QuantumShield/commit/a90b659c6fc80a3c4044570f670e98978a3e320c) |
+| **Ganesh M** | Cryptography inventory and static-analysis workflow |
+| **Rohith V** | Post-quantum migration guidance and project coordination |
+| **Renith V** | Reporting and dashboard integration |
 
 The repository's earlier maintainer credits were [@bharathi12-hub](https://github.com/bharathi12-hub)
 and [@rohithvenkatesan009-rik](https://github.com/rohithvenkatesan009-rik).
-The team listing does not imply equal commit counts or assign undocumented work.
+These are role assignments for the project profile, not claims that each member
+authored the corresponding historical code or ran a particular test. The linked
+commit identifies Bharathithasan's documented security work.
 
 ---
 
